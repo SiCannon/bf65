@@ -16,7 +16,7 @@ namespace mysql_test
             {
                 if (!context.Person.Any())
                 {
-                    context.Person.Add(new Person { Name = "Jimmy" });
+                    context.Person.Add(new Person { Name = "Jimmy", Age = 0 });
                     context.Person.Add(new Person { Name = "Adina" });
                     context.Person.Add(new Person { Name = "Simon" });
                     context.SaveChanges();
