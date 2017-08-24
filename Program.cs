@@ -17,18 +17,17 @@ namespace mysql_test
                 if (!context.Person.Any())
                 {
                     context.Person.Add(new Person { Name = "Jimmy", Age = 0 });
-                    context.Person.Add(new Person { Name = "Adina" });
-                    context.Person.Add(new Person { Name = "Simon" });
+                    context.Person.Add(new Person { Name = "Adina", Age = 38 });
+                    context.Person.Add(new Person { Name = "Simon", Age = 41 });
                     context.SaveChanges();
                 }
             }
 
             using (var context = PieContextFactory.Create(Globals.ConnectionString))
             {
-                var names = context.Person.Select(x => x.Name).ToList();
-                foreach (var name in names)
+                foreach (var p in context.Person)
                 {
-                    Console.WriteLine("name: " + name);
+                    Console.WriteLine($"name: {p.Name}, age: {p.Age}");
                 }
             }
 
