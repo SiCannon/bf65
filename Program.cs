@@ -3,16 +3,20 @@ using System.IO;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using MySQL.Data.EntityFrameworkCore.Extensions;
+using Npgsql.EntityFrameworkCore.PostgreSQL;
 
 namespace mysql_test
 {
     class Program
     {
+        public enum DatabaseType { MySql, Postgres };
+        public const DatabaseType dbType = DatabaseType.MySql;
+
         static void Main(string[] args)
         {
             Console.WriteLine("start");
 
-            using (var context = PieContextFactory.Create(Globals.ConnectionString))
+            using (var context = new PieContext())
             {
                 if (!context.Person.Any())
                 {
@@ -23,7 +27,7 @@ namespace mysql_test
                 }
             }
 
-            using (var context = PieContextFactory.Create(Globals.ConnectionString))
+            using (var context = new PieContext())
             {
                 foreach (var p in context.Person)
                 {
@@ -31,14 +35,14 @@ namespace mysql_test
                 }
             }
 
-            Console.WriteLine("end");            
+            Console.WriteLine("end");
         }
     }
 
     public class Person
     {
         public int PersonId { get; set; }
-        public string Name  { get; set; }
+        public string Name { get; set; }
         public int Age { get; set; }
     }
 
@@ -63,30 +67,39 @@ namespace mysql_test
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseMySQL(Globals.ConnectionString);
+            optionsBuilder.UseSepecifiedDatabase();
         }
     }
 
-    public static class PieContextFactory
+    public static class DatabaseSelect
     {
-        //public static string connString { get; set; }
-
-        public static PieContext Create(string connectionString)
+        public static DbContextOptionsBuilder UseSepecifiedDatabase(this DbContextOptionsBuilder optionsBuilder)
         {
-            var optionsBuilder = new DbContextOptionsBuilder<PieContext>();
-            optionsBuilder.UseMySQL(connectionString);
-        
-            //Ensure database creation
-            var context = new PieContext(optionsBuilder.Options);
-            context.Database.EnsureCreated();
-        
-            return context;
+            switch (Program.dbType)
+            {
+                case Program.DatabaseType.MySql:
+                    return optionsBuilder.UseMySQL(ConnectionString);
+                case Program.DatabaseType.Postgres:
+                    return optionsBuilder.UseNpgsql(ConnectionString);
+            }
         }
-    }    
 
-    static class Globals
-    {
-        private static string RawConnectionString = "server=localhost;Uid=root;Pwd=%PASSWORD%;port=3306;database=test2;sslmode=none";
+        private static string MySqlConnectionString = "server=localhost;Uid=root;Pwd=%PASSWORD%;port=3306;database=pies;sslmode=none";
+        private static string PostgresConnectionString = "User ID=postgres;Password=%PASSWORD%;Host=localhost;Port=5432;Database=pies";
+
+        public static string RawConnectionString
+        {
+            get
+            {
+                switch (Program.dbType)
+                {
+                    case Program.DatabaseType.MySql:
+                        return MySqlConnectionString;
+                    case Program.DatabaseType.Postgres:
+                        return PostgresConnectionString;
+                }
+            }
+        }
 
         public static string ConnectionString
         {
@@ -95,6 +108,6 @@ namespace mysql_test
                 string password = File.ReadAllText("password.txt");
                 return RawConnectionString.Replace("%PASSWORD%", password);
             }
-        } 
+        }
     }
 }

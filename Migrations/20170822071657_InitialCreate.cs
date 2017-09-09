@@ -13,7 +13,8 @@ namespace mysqltest.Migrations
                 columns: table => new
                 {
                     PersonId = table.Column<int>(nullable: false)
-                        .Annotation("MySQL:AutoIncrement", true),
+                        .Annotation("MySQL:AutoIncrement", true)
+                        .Annotation("Npgsql:ValueGeneratedOnAdd", true),
                     Name = table.Column<string>(nullable: true)
                 },
                 constraints: table =>
